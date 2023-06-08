@@ -1,6 +1,61 @@
 const myform = document.getElementById('myform')
 const itemlist = document.getElementById('itemlist')
 
+function updateItem(itemId, item) {
+    axios.put(`https://crudcrud.com/api/c8f5ba09122a4de08af481c495225b07/data1/${itemId}`, {item:item.item,description:item.description,price:item.price,quantity:item.quantity})
+        .then(res => {
+            fetchItems();
+        })
+        .catch(error => {
+            console.error(error);
+        });
+}
+
+function buyItem(itemId, quantity) {
+    axios.get(`https://crudcrud.com/api/c8f5ba09122a4de08af481c495225b07/data1/${itemId}`)
+        .then(res => {
+            const item = res.data;
+            item.quantity -= quantity;
+            updateItem(itemId, item);
+        })
+        .catch(error => {
+            console.error(error);
+        });
+}
+
+function displayItems(items) {
+    itemlist.innerHTML = ""
+    items.forEach(item => {
+        const li = document.createElement('li')
+        li.textContent = `ITEM : ${item.item} , DESCRIPTION : ${item.description} , PRICE : ${item.price} , QUANTITY : ${item.quantity}`
+        itemlist.appendChild(li)
+
+        const buyButton1 = document.createElement('button')
+        buyButton1.textContent = 'Buy 1';
+        buyButton1.addEventListener('click', () => buyItem(item._id, 1))
+
+        const buyButton2 = document.createElement('button');
+        buyButton2.textContent = 'Buy 2';
+        buyButton2.addEventListener('click', () => buyItem(item._id, 2))
+
+        const buyButton3 = document.createElement('button');
+        buyButton3.textContent = 'Buy 3';
+        buyButton3.addEventListener('click', () => buyItem(item._id, 3))
+
+        itemlist.appendChild(buyButton1);
+        itemlist.appendChild(buyButton2);
+        itemlist.appendChild(buyButton3);
+    });
+}
+
+function fetchItems() {
+    axios.get("https://crudcrud.com/api/c8f5ba09122a4de08af481c495225b07/data1")
+        .then(res => {
+            displayItems(res.data)
+        })
+        .catch((err) => console.log(err))
+}
+
 function addItems(item, description, price, quantity) {
     let obj = {
         item: item,
@@ -8,53 +63,11 @@ function addItems(item, description, price, quantity) {
         price: price,
         quantity: quantity
     }
-    axios.post("https://crudcrud.com/api/7f34ab12878c4798ba3f3d9e744207db/Inventory", obj)
-        .then(() => {
-            displayItems()
+    axios.post("https://crudcrud.com/api/c8f5ba09122a4de08af481c495225b07/data1", obj)
+        .then(res => {
+            fetchItems()
         })
         .catch((err) => console.log(err))
-}
-
-function displayItems() {
-    axios.get("https://crudcrud.com/api/7f34ab12878c4798ba3f3d9e744207db/Inventory")
-        .then((res) => {
-            itemlist.innerHTML = ""
-            const items = res.data
-            items.forEach(i => {
-                const li = document.createElement('li')
-                li.textContent = `ITEM : ${i.item} , DESCRIPTION : ${i.description} , PRICE : ${i.price} , QUANTITY : ${i.quantity}`
-                itemlist.appendChild(li)
-
-                const buy1Btn = document.createElement('button')
-                buy1Btn.textContent = "Buy 1"
-                buy1Btn.addEventListener('click', () => {
-                    updateQuantity(i._id, i.quantity - 1)
-                })
-
-                const buy2Btn = document.createElement('button')
-                buy2Btn.textContent = "Buy 2"
-                buy2Btn.addEventListener('click', () => {
-                    updateQuantity(i._id, i.quantity - 2)
-                })
-
-                const buy3Btn = document.createElement('button')
-                buy3Btn.textContent = "Buy 3"
-                buy3Btn.addEventListener('click', () => {
-                    updateQuantity(i._id, i.quantity - 3)
-                })
-                li.appendChild(buy1Btn)
-                li.appendChild(buy2Btn)
-                li.appendChild(buy3Btn)
-            });
-        })
-}
-
-function updateQuantity(id,quantity){
-    axios.put(`https://crudcrud.com/api/7f34ab12878c4798ba3f3d9e744207db/Inventory/${id}`,{quantity:quantity})
-        .then(()=>{
-            displayItems()
-        })
-        .catch((err)=>console.log(err))
 }
 
 myform.addEventListener('submit', (e) => {
@@ -73,4 +86,4 @@ myform.addEventListener('submit', (e) => {
     price.value = ""
     quantity.value = ""
 })
-document.addEventListener('DOMContentLoaded', displayItems);
+document.addEventListener('DOMContentLoaded', fetchItems);
